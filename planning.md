@@ -20,9 +20,10 @@ searches the database looking for the best matches based on criteria. picks the 
 
 **Input parameters:**
 <!-- List each parameter, its type, and what it represents -->
-- `description` (str): ...
-- `size` (str): ...
-- `max_price` (float): ...
+- `description` (str): description of item, represents what the query should look for in the database.
+- `size` (str): represents the size of the item the user is looking for , 
+- `max_price` (float): represents the max price of item the user is looking for, should use the price field of the item entry to find prices that are below this
+
 
 **What it returns:**
 <!-- Describe the return value — what fields does a result contain? -->
@@ -143,9 +144,11 @@ agent uses search_listings to find a match for the item the user is looking for.
 
 **Step 2:**
 <!-- What happens next? What was returned from step 1? What tool is called now? -->
-uses the item that was suggested from step one and the original query as input and calls suggest_outift, returns outfits that match what the user is looking for. 
+uses the item that was suggested from step one and the original query as input and calls suggest_outift, returns outfits that match what the user is looking for. adds outfit to fit card. if its the first time it creates a new one using create_fit_card
+if not outfit found ask the user to suggest something else. do not add empty to fit card 
 **Step 3:**
 <!-- Continue until the full interaction is complete -->
 
 **Final output to user:**
 <!-- What does the user actually see at the end? -->
+updates fit card and builds wardrobe for user
