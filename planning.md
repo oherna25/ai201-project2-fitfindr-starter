@@ -27,9 +27,11 @@ searches the database looking for the best matches based on criteria. picks the 
 
 **What it returns:**
 <!-- Describe the return value — what fields does a result contain? -->
+returns the top item that matches what the user is looking for.
 
 **What happens if it fails or returns nothing:**
 <!-- What should the agent do if no listings match? -->
+if nothing is found , tell the user to suggest a new item , do not call suggest_outfit or create_fit_card
 
 ---
 
@@ -37,6 +39,7 @@ searches the database looking for the best matches based on criteria. picks the 
 
 **What it does:**
 <!-- Describe what this tool does in 1–2 sentences -->
+suggests other items that would look good with the item. uses the new item that found and the current users warddrobe. if the user has no wardrobe yet , create one and then put the item in there. if user provided list of other items they wear use those otherwise use whats in the wardrobe
 
 **Input parameters:**
 <!-- List each parameter, its type, and what it represents -->
@@ -45,9 +48,11 @@ searches the database looking for the best matches based on criteria. picks the 
 
 **What it returns:**
 <!-- Describe the return value -->
+returns a suggestion, if no wardrobe uses any items listed in input otherwise uses items already in the wardrobe
 
 **What happens if it fails or returns nothing:**
 <!-- What should the agent do if the wardrobe is empty or no outfit can be suggested? -->
+if the wardrobe is empty add the item to the wardrobe, tell the user to continue adding more item to the wardrobe.
 
 ---
 
@@ -55,17 +60,20 @@ searches the database looking for the best matches based on criteria. picks the 
 
 **What it does:**
 <!-- Describe what this tool does in 1–2 sentences -->
+uses wardrobe and last fetched item to build a social media post like string.
 
 **Input parameters:**
 <!-- List each parameter, its type, and what it represents -->
-- `outfit` (...): ...
+- `outfit` (dict): current suggestions 
+- 'new item' (dict): gets last item.
 
 **What it returns:**
 <!-- Describe the return value -->
+returns a string based on what in the wardrobe 
 
 **What happens if it fails or returns nothing:**
 <!-- What should the agent do if the outfit data is incomplete? -->
-
+if data is incomplete ask user to continue chatting so we can add more items and build a suggestion.
 ---
 
 ### Additional Tools (if any)
@@ -79,12 +87,18 @@ searches the database looking for the best matches based on criteria. picks the 
 **How does your agent decide which tool to call next?**
 <!-- Describe the logic your planning loop uses. What does it look at? What conditions change its behavior? How does it know when it's done? -->
 
+After search_listings runs, check if results is empty. If yes, set an error message in the session and return early. If no, set selected_item = results[0]
+input results[0] if not null into suggest_outfit along with the current wardrobe. if wardrobe is empty or null create it, have the agent use the input if the wardrobe is empty or incomplete ( need at least a shirt ( its called tops in the item category section ) and pants ( bottoms in the category section of item )).
+if all theres at least one item in the wardrobe for each category use all those otherwise ( one tops and one bottoms) use all of those otherwise use the users input. 
+use the suggestion if its not null, use it as an input for create_fit_card along with the item suggested. if both are null, stop and return error message to user . return a string that uses the suggestion and item. should feel like a social media post.
+
 ---
 
 ## State Management
 
 **How does information from one tool get passed to the next?**
 <!-- Describe how your agent stores and accesses state within a session. What data is tracked? How is it passed between tool calls? -->
+use a results variable to add on the the results, should be global and be used by the above functions to grab user inputs. 
 
 ---
 
