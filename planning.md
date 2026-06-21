@@ -108,9 +108,9 @@ For each tool, describe the specific failure mode you're handling and what the a
 
 | Tool | Failure mode | Agent response |
 |------|-------------|----------------|
-| search_listings | No results match the query | |
-| suggest_outfit | Wardrobe is empty | |
-| create_fit_card | Outfit input is missing or incomplete | |
+| search_listings | No results match the query | return error message |
+| suggest_outfit | Wardrobe is empty | return message , start new wardrobe |
+| create_fit_card | Outfit input is missing or incomplete | use prompt to suggest outfits |
 
 ---
 
@@ -124,6 +124,56 @@ For each tool, describe the specific failure mode you're handling and what the a
      ASCII art, a Mermaid diagram (https://mermaid.js.org/syntax/flowchart.html), or an embedded
      sketch are all fine. You'll share this diagram with an AI tool when asking it to implement
      the planning loop and each individual tool. -->
+
+'''mermaid
+---
+config:
+  layout: dagre
+---
+flowchart TD
+    Start[User Query] --> PlanningLoop[Planning Loop]
+    
+    subgraph Planning Loop
+        Search[search_listings<br/>description, size, max_price]
+        CheckResults{results empty?}
+        
+        ErrorSearch[Session: error_msg = No listings found...]
+        SetSelected["Session: selected_item = results[0]"]
+        
+        Suggest[suggest_outfit<br/>selected_item, wardrobe]
+        HandleWardrobe{Wardrobe check}
+        
+        CreateWardrobe["Create / init wardrobe<br/>using user input if empty or incomplete<br/>(need ≥1 tops + ≥1 bottoms)"]
+        UseWardrobe["Use all wardrobe items<br/>(tops + bottoms)"]
+        UseInput[Use user input item]
+        
+        CreateCard[create_fit_card<br/>outfit_suggestion, selected_item]
+        CheckInputs{Both null?}
+        
+        ErrorCard[Session: error_msg = Missing outfit or item]
+        BuildPost[Build social media style post<br/>using suggestion + item]
+        SessionUpdate[Update Session:<br/>fit_card = post_string]
+    end
+    
+    Return[Return Session]
+    
+    Start --> Search
+    Search --> CheckResults
+    CheckResults -- Yes --> ErrorSearch --> Return
+    CheckResults -- No --> SetSelected --> Suggest
+    
+    Suggest --> HandleWardrobe
+    HandleWardrobe -- empty/null or incomplete --> CreateWardrobe --> Suggest
+    HandleWardrobe -- has tops + bottoms --> UseWardrobe --> Suggest
+    HandleWardrobe -- otherwise --> UseInput --> Suggest
+    
+    Suggest --> CreateCard
+    CreateCard --> CheckInputs
+    CheckInputs -- Yes --> ErrorCard --> Return
+    CheckInputs -- No --> BuildPost --> SessionUpdate --> Return
+
+
+'''
 
 ---
 
