@@ -19,9 +19,9 @@ from utils.data_loader import get_example_wardrobe, get_empty_wardrobe
 
 
 # ── query handler ─────────────────────────────────────────────────────────────
-
+"""
 def handle_query(user_query: str, wardrobe_choice: str) -> tuple[str, str, str]:
-    """
+ 
     Called by Gradio when the user submits a query.
 
     Args:
@@ -42,9 +42,59 @@ def handle_query(user_query: str, wardrobe_choice: str) -> tuple[str, str, str]:
         5. Otherwise, format session["selected_item"] into a readable listing_text
            string and return it along with session["outfit_suggestion"] and
            session["fit_card"].
-    """
+    
     # TODO: implement this function
     return "Agent not yet implemented.", "", ""
+    """
+def handle_query(user_query: str, wardrobe_choice: str) -> tuple[str, str, str]:
+    """
+    Called by Gradio when the user submits a query.
+    """
+    # Step 1: Guard against empty query
+    if not user_query or not user_query.strip():
+        return "Please enter a search query to get started!", "", ""
+
+    # Step 2: Select wardrobe
+    if wardrobe_choice == "Example wardrobe":
+        wardrobe = get_example_wardrobe()
+    else:
+        wardrobe = get_empty_wardrobe()
+
+    # Step 3: Run the agent
+    session = run_agent(query=user_query, wardrobe=wardrobe)
+
+    # Step 4: Handle errors
+    if session.get("error"):
+        return session["error"], "", ""
+
+    # Step 5: Format outputs
+    item = session.get("selected_item", {})
+    listing_text = (
+        f"🛍️ {item.get('title', 'Unknown item')}\n"
+        f"Brand:     {item.get('brand', 'N/A')}\n"
+        f"Category:  {item.get('category', 'N/A')}\n"
+        f"Size:      {item.get('size', 'N/A')}\n"
+        f"Condition: {item.get('condition', 'N/A')}\n"
+        f"Price:     ${item.get('price', '?')}\n"
+        f"Platform:  {item.get('platform', 'N/A')}\n"
+        f"Colors:    {', '.join(item.get('colors', []))}\n"
+        f"Vibes:     {', '.join(item.get('style_tags', []))}\n"
+        f"\n{item.get('description', '')}"
+    )
+
+    outfit_suggestion = session.get("outfit_suggestion", {})
+    pairings = outfit_suggestion.get("pairings", [])
+    outfit_text = outfit_suggestion.get("message", "")
+    if pairings:
+        outfit_text += "\n\nPairs well with:\n" + "\n".join(
+            f"  • {p.get('name', 'Unknown')} — {p.get('category', '')}"
+            for p in pairings
+            if isinstance(p, dict)
+        )
+
+        fit_card = session.get("fit_card", "")
+
+        return listing_text, outfit_text, fit_card
 
 
 # ── interface ─────────────────────────────────────────────────────────────────

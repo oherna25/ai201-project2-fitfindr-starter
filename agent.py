@@ -46,9 +46,9 @@ def _new_session(query: str, wardrobe: dict) -> dict:
 
 
 # ── planning loop ─────────────────────────────────────────────────────────────
-
+"""
 def run_agent(query: str, wardrobe: dict) -> dict:
-    """
+  
     Main agent entry point. Runs the FitFindr planning loop for a single
     user interaction and returns the completed session dict.
 
@@ -91,13 +91,104 @@ def run_agent(query: str, wardrobe: dict) -> dict:
 
     Before writing code, complete the Planning Loop and State Management sections
     of planning.md — your implementation should match what you described there.
-    """
+
     # TODO: implement the planning loop
     session = _new_session(query, wardrobe)
     session["error"] = "Planning loop not yet implemented."
     return session
+"""
+def run_agent(query: str, wardrobe: dict) -> dict:
+    """
+    Main agent entry point. Runs the FitFindr planning loop for a single
+    user interaction and returns the completed session dict.
+    """
+    # Step 1: Initialize session
+    session = _new_session(query, wardrobe)
 
+    # Step 2: Parse the query using the LLM
+    parse_prompt = f"""Extract search parameters from this clothing query.
+Respond ONLY with valid JSON, no extra text.
 
+Query: "{query}"
+
+Return this exact format:
+{{
+  "description": "keywords describing the item",
+  "size": "size string or null",
+  "max_price": number or null
+}}
+
+Examples:
+- "vintage graphic tee under $30 size M" → {{"description": "vintage graphic tee", "size": "M", "max_price": 30.0}}
+- "black denim jacket" → {{"description": "black denim jacket", "size": null, "max_price": null}}
+"""
+
+    try:
+        parse_response = client.chat.completions.create(
+            model="llama-3.1-8b-instant",
+            messages=[{"role": "user", "content": parse_prompt}],
+            temperature=0.0,
+        )
+        raw = parse_response.choices[0].message.content.strip()
+        parsed = json.loads(raw)
+    except Exception:
+        parsed = {"description": query, "size": None, "max_price": None}
+
+    session["parsed"] = parsed
+
+    # Step 3: Search listings
+    results = search_listings(
+        description=parsed.get("description", query),
+        size=parsed.get("size"),
+        max_price=parsed.get("max_price"),
+    )
+    session["search_results"] = results
+
+    if not results:
+        session["error"] = (
+            "No listings matched your search. Try describing a different item "
+            "or loosening your size or price filters!"
+        )
+        return session
+
+    # Step 4: Select top result
+    selected_item = results[0]
+    session["selected_item"] = selected_item
+
+    # Step 5: Check wardrobe completeness, init if needed
+    if "items" not in wardrobe or wardrobe["items"] is None:
+        wardrobe["items"] = []
+
+    has_tops = any(i.get("category", "").lower() == "tops" for i in wardrobe["items"])
+    has_bottoms = any(i.get("category", "").lower() == "bottoms" for i in wardrobe["items"])
+
+    if not has_tops or not has_bottoms:
+        # Wardrobe is empty or incomplete — add selected item and use what we have
+        if selected_item not in wardrobe["items"]:
+            wardrobe["items"].append(selected_item)
+
+    # Step 6: suggest_outfit
+    outfit_suggestion = suggest_outfit(
+        new_item=selected_item,
+        wardrobe=wardrobe,
+    )
+    session["outfit_suggestion"] = outfit_suggestion
+
+    # Step 7: create_fit_card
+    if not outfit_suggestion or not selected_item:
+        session["error"] = (
+            "Something went wrong building your outfit. "
+            "Try adding more items to your wardrobe and searching again!"
+        )
+        return session
+
+    fit_card = create_fit_card(
+        outfit=outfit_suggestion,
+        new_item=selected_item,
+    )
+    session["fit_card"] = fit_card
+
+    return session
 # ── CLI test ──────────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":

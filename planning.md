@@ -39,7 +39,7 @@ if nothing is found , tell the user to suggest a new item , do not call suggest_
 
 **What it does:**
 <!-- Describe what this tool does in 1–2 sentences -->
-suggests other items that would look good with the item. uses the new item that found and the current users warddrobe. if the user has no wardrobe yet , create one and then put the item in there. if user provided list of other items they wear use those otherwise use whats in the wardrobe
+suggests other items that would look good with the item. uses the new item that found and the current users warddrobe. if the user has no wardrobe yet , create one and then put the item in there. if user provided list of other items they wear use those otherwise use whats in the wardrobe.
 
 **Input parameters:**
 <!-- List each parameter, its type, and what it represents -->
@@ -52,7 +52,7 @@ returns a suggestion, if no wardrobe uses any items listed in input otherwise us
 
 **What happens if it fails or returns nothing:**
 <!-- What should the agent do if the wardrobe is empty or no outfit can be suggested? -->
-if the wardrobe is empty add the item to the wardrobe, tell the user to continue adding more item to the wardrobe.
+if the wardrobe is empty add the item to the wardrobe, tell the user to continue adding more item to the wardrobe. 
 
 ---
 
