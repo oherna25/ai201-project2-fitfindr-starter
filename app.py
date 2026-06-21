@@ -62,10 +62,13 @@ def handle_query(user_query: str, wardrobe_choice: str) -> tuple[str, str, str]:
 
     # Step 3: Run the agent
     session = run_agent(query=user_query, wardrobe=wardrobe)
+    if session is None:
+        return "Something went wrong. Please try again.", "", ""
 
     # Step 4: Handle errors
     if session.get("error"):
-        return session["error"], "", ""
+        return str(session["error"]), "", ""
+    
 
     # Step 5: Format outputs
     item = session.get("selected_item", {})
@@ -92,9 +95,9 @@ def handle_query(user_query: str, wardrobe_choice: str) -> tuple[str, str, str]:
             if isinstance(p, dict)
         )
 
-        fit_card = session.get("fit_card", "")
+    fit_card = session.get("fit_card", "")
 
-        return listing_text, outfit_text, fit_card
+    return listing_text, outfit_text, fit_card
 
 
 # ── interface ─────────────────────────────────────────────────────────────────

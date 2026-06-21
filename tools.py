@@ -97,6 +97,7 @@ def search_listings(
         id, title, description, category, style_tags (list), size,
         condition, price (float), colors (list), brand, platform
     """
+    print("search_listings")
     listings = load_listings()
 
     # Step 1: Filter by max_price and size
@@ -167,6 +168,7 @@ def suggest_outfit(
     """
     Suggest wardrobe items that pair well with new_item.
     """
+    print("suggest_outfit")
     # Ensure wardrobe has an items list
     if "items" not in wardrobe or wardrobe["items"] is None:
         wardrobe["items"] = []
@@ -263,6 +265,7 @@ def create_fit_card(outfit: str, new_item: dict) -> str:
 """
 
 def create_fit_card(outfit: dict, new_item: dict) -> str:
+    print("create_fit_card")
     try:
         # Guard: check for incomplete data
         if not outfit or not isinstance(outfit, dict):

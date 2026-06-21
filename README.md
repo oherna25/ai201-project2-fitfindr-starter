@@ -241,6 +241,9 @@ flowchart TD
      "I'll give Claude my Tool 1 spec (inputs, return value, failure mode) and ask it to implement
      search_listings() using load_listings() from the data loader — then test it against 3 queries
      before trusting it" is a plan. -->
+i used claude code to develop the tools as instructed from planning.md. i gave it each section required by each function to create the function implementaion and gave the functions as needed. i was expecting it to produce 100% working functions but sadly that was not the case. i ran the app once all the functions were implemented and fixed various errors such as claude code changing parameters and calling the LLM at weird times. fixing issues with error handling. i verified that all the required behavior was occurring in each function before moving on to the next stage. 
+
+another instance where i used ai is in the testing part. i provided it the examples listed but i underspecifed how it should create the tests. it was creating its own example wardrobes and calling the LLM in the tests which it couldnt do. i had to edit or remove ones that were testing the LLM itself rather than the functions.
 
 # A Complete Interaction (Step by Step)
 
@@ -262,3 +265,7 @@ if not outfit found ask the user to suggest something else. do not add empty to 
 **Final output to user:**
 <!-- What does the user actually see at the end? -->
 updates fit card and builds wardrobe for user
+
+
+# reflections
+i did think of other errors that i did not think of during debugging and building out the program.
